@@ -57,16 +57,31 @@ class LTProtocol():
         """Creates a packed byte-string of this message given the body.
         @param lmt  packed byte-string representing the message body
         """
+        #print(f"mydebug: pack_with_header: called with lmt: {lmt}")
         body = lmt.pack()
+        #print(f"mydebug: pack_with_header: body: {body}")
+        if type(body) != type(b' '):
+            #print(f"mydebug: pack_with_header: body was not bytes: was: {type(body)}")
+            body = body.encode('utf-8')
+            #print(f"mydebug: body is now: {body}")
         fmt = '> ' + self.len_type + self.type_type
+        #print(f"mydebug: pack_with_header: fmt: {fmt}")
+        #print(f"mydebug: pack_with_header: type(fmt): {type(fmt)}")
         sz = struct.calcsize(fmt) + len(body)
-        return struct.pack(fmt, sz, lmt.get_type()) + body
+        #print(f"mydebug: pack_with_header: sz: {sz}")
+        #print(f"mydebug: pack_with_header: type(lmt.get_type): {type(lmt.get_type())}")
+        #print(f"mydebug: pack_with_header: type(sz): {type(sz)}")
+        #print(f"mydebug: pack_with_header: type(body): {type(body)}")
+        packed = struct.pack(fmt.encode('utf-8'), sz, lmt.get_type()) + body
+        #print(f"mydebug: pack_with_header: final packed: {packed}")
+        return packed
 
     def unpack_received_msg(self, type_val, body):
         """Returns the next fully-received message from sock, or None if the type is unknown."""
-        if self.msg_types.has_key(type_val):
+        if type_val in self.msg_types:
             return self.msg_types[type_val].unpack(body)
         else:
+            #print(f"mydebug: unpack_recieved_msg: Returning None: type_val was: {type_val}")
             return None # unknown message type
 
 class LTTwistedProtocol(Protocol):
@@ -76,7 +91,7 @@ class LTTwistedProtocol(Protocol):
         """Creates a """
         self.factory = None  # set when used by a factory
         self.buf_accum = ''
-        self.packet = ""
+        self.packet = b""
         self.plen = 0
         self.connected = False
 
